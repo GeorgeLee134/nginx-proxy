@@ -32,8 +32,10 @@
 		root   {{ trim .Vhostroot }};
 		include fastcgi.conf;
 		fastcgi_pass {{ trim .Upstream }};
+	{{ if (contains (.Proto "grpc")) }}
+		grpc_pass {{ trim .Proto }}://{{ trim .Upstream }};
 	{{ else }}
-		{{ $pathDest := trim (or (.PathDest) "") }}  
+		{{ $pathDest := trim (or (.PathDest) "/") }}  
 		proxy_pass {{ trim .Proto }}://{{ trim .Upstream }}{{$pathDest}};
 	{{ end }}
 

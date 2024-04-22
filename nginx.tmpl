@@ -32,11 +32,8 @@
 		root   {{ trim .Vhostroot }};
 		include fastcgi.conf;
 		fastcgi_pass {{ trim .Upstream }};
-	{{ else if eq .Proto "gRPC"}}
-		{{ $pathDest := trim (or (.PathDest) "/") }}  
-		grpc_pass grpc://{{ trim .Upstream }}{{$pathDest}};
 	{{ else }}
-		{{ $pathDest := trim (or (.PathDest) "/") }}  
+		{{ $pathDest := trim (.PathDest) }}  
 		proxy_pass {{ trim .Proto }}://{{ trim .Upstream }}{{$pathDest}};
 	{{ end }}
 
@@ -198,9 +195,6 @@ server {
 {{ $default_host := or ($.Env.DEFAULT_HOST) "" }}
 {{ $default_server := index (dict $host "" $default_host "default_server") $host }}
 
-{{/* Get the VIRTUAL_PROTO defined by containers w/ the same vhost, falling back to "http" */}}
-{{ $proto := trim (or (first (groupByKeys $containers "Env.VIRTUAL_PROTO")) "http") }}
-
 {{/* Get the NETWORK_ACCESS defined by containers w/ the same vhost, falling back to "external" */}}
 {{ $network_tag := or (first (groupByKeys $containers "Env.NETWORK_ACCESS")) "external" }}
 
@@ -317,7 +311,7 @@ server {
 	{{ end }}
 
 	{{ if eq $nPaths 0 }}
-		{{ template "location" (dict "Path" "/" "Proto" $proto "Upstream" $upstream_name "Host" $host "Vhostroot" $vhost_root) }}
+		{{ template "location" (dict "Path" "/" "Proto" "http" "Upstream" $upstream_name "Host" $host "Vhostroot" $vhost_root) }}
 	{{ else }}
 		{{ range $path, $containers := $paths }}
 			{{ $sum := sha1 $path }}
@@ -325,6 +319,7 @@ server {
 			
 			{{ $container := index $containers 0}}
 			{{ $pathDest := $container.Env.VIRTUAL_PATH_DEST }}
+			{{ $proto := $container.Env.VIRTUAL_PROTO }}
 			
 			{{ template "location" (dict "Path" $path "Proto" $proto "Upstream" $upstream "Host" $host "Vhostroot" $vhost_root "PathDest" $pathDest) }}
 			
@@ -356,7 +351,7 @@ server {
 	{{ end }}
 
 	{{ if eq $nPaths 0 }}
-		{{ template "location" (dict "Path" "/" "Proto" $proto "Upstream" $upstream_name "Host" $host "Vhostroot" $vhost_root) }}
+		{{ template "location" (dict "Path" "/" "Proto" "http" "Upstream" $upstream_name "Host" $host "Vhostroot" $vhost_root) }}
 	{{ else }}
 		{{ range $path, $containers := $paths }}
 			{{ $sum := sha1 $path }}
@@ -364,6 +359,7 @@ server {
 			
 			{{ $container := index $containers 0}}
 			{{ $pathDest := $container.Env.VIRTUAL_PATH_DEST }}
+			{{ $proto := $container.Env.VIRTUAL_PROTO }}
 
 			{{ template "location" (dict "Path" $path "Proto" $proto "Upstream" $upstream "Host" $host "Vhostroot" $vhost_root "PathDest" $pathDest) }}
 		{{ end }}

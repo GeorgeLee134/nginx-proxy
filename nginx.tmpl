@@ -319,7 +319,7 @@ server {
 			
 			{{ $container := index $containers 0}}
 			{{ $pathDest := $container.Env.VIRTUAL_PATH_DEST }}
-			{{ $proto := $container.Env.VIRTUAL_PROTO }}
+			{{ $proto := (or ($container.Env.VIRTUAL_PROTO) "http") }}
 			
 			{{ template "location" (dict "Path" $path "Proto" $proto "Upstream" $upstream "Host" $host "Vhostroot" $vhost_root "PathDest" $pathDest) }}
 			
@@ -359,7 +359,7 @@ server {
 			
 			{{ $container := index $containers 0}}
 			{{ $pathDest := $container.Env.VIRTUAL_PATH_DEST }}
-			{{ $proto := $container.Env.VIRTUAL_PROTO }}
+			{{ $proto := (or ($container.Env.VIRTUAL_PROTO) "http") }}
 
 			{{ template "location" (dict "Path" $path "Proto" $proto "Upstream" $upstream "Host" $host "Vhostroot" $vhost_root "PathDest" $pathDest) }}
 		{{ end }}

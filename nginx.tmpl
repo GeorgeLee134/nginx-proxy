@@ -251,7 +251,8 @@ server {
 
 {{ if $www_redirect_to_non }}
 server {
-	listen 443 ssl http2;
+	listen 443 ssl;
+	http2 on;
 	ssl_certificate /etc/nginx/certs/{{ (printf "%s.crt" $cert) }};
 	ssl_certificate_key /etc/nginx/certs/{{ (printf "%s.key" $cert) }};
   server_name www.{{ $host }};
@@ -262,9 +263,10 @@ server {
 
 server {
 	server_name {{ $host }};
-	listen 443 ssl http2 {{ $default_server }};
+	listen 443 ssl {{ $default_server }};
+	http2 on;
 	{{ if $enable_ipv6 }}
-	listen [::]:443 ssl http2 {{ $default_server }};
+	listen [::]:443 ssl {{ $default_server }};
 	{{ end }}
 	access_log /var/log/nginx/access.log vhost;
 
@@ -389,9 +391,10 @@ server {
 {{ if (and (not $is_https) (exists "/etc/nginx/certs/default.crt") (exists "/etc/nginx/certs/default.key")) }}
 server {
 	server_name {{ $host }};
-	listen 443 ssl http2 {{ $default_server }};
+	listen 443 ssl {{ $default_server }};
+	http2 on;
 	{{ if $enable_ipv6 }}
-	listen [::]:443 ssl http2 {{ $default_server }};
+	listen [::]:443 ssl {{ $default_server }};
 	{{ end }}
 	access_log /var/log/nginx/access.log vhost;
 	return 500;

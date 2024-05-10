@@ -212,6 +212,9 @@ server {
 {{/* Get the VIRTUAL_ROOT By containers w/ use fastcgi root */}}
 {{ $vhost_root := or (first (groupByKeys $containers "Env.VIRTUAL_ROOT")) "/var/www/public" }}
 
+{{/* Get the WWW_REDIRECT_TO_NON defined by containers w/ the same vhost, falling back to false*/}}
+{{ $www_redirect_to_non := or (first (groupByKeys $containers "Env.WWW_REDIRECT_TO_NON")) false }}
+
 
 {{/* Get the first cert name defined by containers w/ the same vhost */}}
 {{ $certName := (first (groupByKeys $containers "Env.CERT_NAME")) }}
@@ -232,7 +235,11 @@ server {
 
 {{ if eq $https_method "redirect" }}
 server {
+	{{ if $www_redirect_to_non }}
+	server_name {{ $host }} www.{{ $host }}
+	{{ else }}
 	server_name {{ $host }};
+	{{ end }}
 	listen 80 {{ $default_server }};
 	{{ if $enable_ipv6 }}
 	listen [::]:80 {{ $default_server }};
@@ -241,6 +248,17 @@ server {
 	return 301 https://$host$request_uri;
 }
 {{ end }}
+
+{{ if $www_redirect_to_non }}
+server {
+	listen 443 ssl http2;
+	ssl_certificate /etc/nginx/certs/{{ (printf "%s.crt" $cert) }};
+	ssl_certificate_key /etc/nginx/certs/{{ (printf "%s.key" $cert) }};
+  server_name www.{{ $host }};
+  return 301 https://$host$request_uri;
+}
+{{ end }}
+
 
 server {
 	server_name {{ $host }};

@@ -257,7 +257,7 @@ server {
 	ssl_certificate /etc/nginx/certs/{{ (printf "%s.crt" $cert) }};
 	ssl_certificate_key /etc/nginx/certs/{{ (printf "%s.key" $cert) }};
   server_name www.{{ $host }};
-  return 301 https://$host$request_uri;
+  return 301 https://{{ $host }}$request_uri;
 }
 {{ end }}
 
